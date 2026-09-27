@@ -1,0 +1,79 @@
+# This file stores configurations for your Shopify app.
+# Run `shopify app config link` to attach it to a real app in your Partner
+# dashboard (fills in client_id) before running `shopify app dev`/`deploy`.
+client_id = "5ba92dd4c27b0cbaa2e1866661af20b5"
+name = "ColisGo"
+handle = "colisgo"
+application_url = "https://app.colisgo.ca"
+embedded = true
+
+[access_scopes]
+# write_shipping        -> register/manage the Carrier Service (checkout rates)
+# read_orders/write_orders -> read order data at orders/paid, write order
+#                             metafields/notes with the ColisGo tracking info
+# write_fulfillments    -> create fulfillments + tracking info (fulfillmentCreateV2)
+# Deliberately webhook-driven (no fulfillment-service scopes): ColisGo does
+# not need to own the fulfillment location for v1.
+scopes = "write_shipping,read_orders,write_orders,write_fulfillments"
+
+[webhooks]
+api_version = "2025-10"
+
+  # Handled by: /app/routes/webhooks.app.uninstalled.tsx
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app/uninstalled"
+  topics = ["app/uninstalled"]
+
+  # Handled by: /app/routes/webhooks.app.scopes_update.tsx
+  [[webhooks.subscriptions]]
+  topics = ["app/scopes_update"]
+  uri = "/webhooks/app/scopes_update"
+
+  # Webhook-driven shipment creation. Handled by:
+  # /app/routes/webhooks.orders.paid.tsx
+  [[webhooks.subscriptions]]
+  topics = ["orders/paid"]
+  uri = "/webhooks/orders/paid"
+
+  # Handled by: /app/routes/webhooks.orders.cancelled.tsx
+  [[webhooks.subscriptions]]
+  topics = ["orders/cancelled"]
+  uri = "/webhooks/orders/cancelled"
+
+  # Handled by: /app/routes/webhooks.refunds.create.tsx
+  [[webhooks.subscriptions]]
+  topics = ["refunds/create"]
+  uri = "/webhooks/refunds/create"
+
+  # Mandatory compliance topics for public apps (App Store review requirement)
+  # Handled by: /app/routes/webhooks.customers.data_request.tsx
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/customers/data_request"
+  compliance_topics = ["customers/data_request"]
+
+  # Handled by: /app/routes/webhooks.customers.redact.tsx
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/customers/redact"
+  compliance_topics = ["customers/redact"]
+
+  # Handled by: /app/routes/webhooks.shop.redact.tsx
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/shop/redact"
+  compliance_topics = ["shop/redact"]
+
+[auth]
+redirect_urls = [
+  "https://app.colisgo.ca/auth/callback",
+  "https://app.colisgo.ca/auth/shopify/callback",
+  "https://app.colisgo.ca/api/auth/callback"
+]
+
+[build]
+include_config_on_deploy = true
+automatically_update_urls_on_dev = true
+
+# Carrier Service (checkout rates) and the ColisGo->app webhook are NOT
+# Shopify webhook topics: they're registered at runtime via the
+# carrierServiceCreate GraphQL mutation (see app/routes/app.settings.tsx)
+# and configured by the merchant in their ColisGo dashboard, respectively.
+# Callback routes: /carrier/rates/:token and /webhooks/colisgo/:token.

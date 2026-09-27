@@ -1,0 +1,11 @@
+api_version = "2025-07"
+
+[[extensions]]
+name = "Envoyer à ColisGo"
+handle = "send-to-colisgo"
+uid = "0a629ce5-be3b-e760-bd19-0ce85138c86d3e08facf"
+type = "ui_extension"
+
+  [[extensions.targeting]]
+  module = "./src/OrderActionExtension.tsx"
+  target = "admin.order-details.action.render"
